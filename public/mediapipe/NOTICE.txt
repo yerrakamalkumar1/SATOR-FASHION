@@ -1,0 +1,5 @@
+MediaPipe Tasks Vision runtime, version 0.10.32.
+Copyright Google LLC. Distributed under Apache License 2.0.
+Source: https://github.com/google-ai-edge/mediapipe
+Installed package: @mediapipe/tasks-vision
+The pose model is downloaded on demand from Google's MediaPipe model distribution.
