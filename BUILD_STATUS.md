@@ -1,25 +1,40 @@
-# Build status
+# ŚATOR — implementation and verification status
 
-## Implemented
+## Prepared release
 
-Discovery, search, category filtering, studio samples, published community designs, creator/brand workspaces, account profiles, private drafts, design editing, uploaded artwork, PNG preview export, inspiration saves, likes, comments, bags, quote requests, saved contact inquiries, manual camera overlay, optional on-device AI pose tracking.
+The self-hosted release includes the fashion studio, community, private wardrobe,
+outfit planning, inspiration pins, designer collaboration, and versioned project
+history. It also includes standalone Node.js storage, private uploaded files,
+backup/restore tooling, and optional self-hosted AI/speech adapters.
 
-## Verified locally
+The release record reports **149 automated checks**, TypeScript, the hosted build,
+and the standalone production build passing before the GitHub import. Documentation
+and repository metadata updates do not represent a new full test run or a successful
+Render deployment. Reproduction commands are in [README.md](README.md).
 
-- 11 functional backend scenarios pass against real route code and schema migrations using SQLite with a D1-compatible test adapter.
-- Coverage includes anonymous write rejection, origin validation, private draft visibility, owner-only editing, publishing, malformed configuration rejection, persistence of social features, server pricing, quote snapshots and retry deduplication, cross-user isolation, contact recipients, and owner deletion.
+## Verification scope
 
-- TypeScript check passed with no errors.
-- Production Vinext build passed for the app and all API routes.
+The integration suites use isolated SQLite fixtures and real application route
+logic. They cover authentication and account isolation, discovery, persistence,
+private media, messaging, notifications, creative-project permissions, revision
+conflicts, search behavior, and standalone storage/speech contracts.
 
-## Deployment
+## Deployment boundaries
 
-Published version and deployment status are recorded by Sites for project `appgprj_6ad4e36567788191b0ddd768b238fbf6`. Intended site address: https://sator-fashion-studio.akshajaddandi.chatgpt.site. The final deployment result must be confirmed through Sites; this document is not a claim of publication success.
+- The existing Sites application uses Cloudflare D1 and R2.
+- The portable target uses Node.js, SQLite, and private persistent disk storage.
+- The repository includes Node, Docker, Compose, and Render configuration.
+- Render hosting has not been verified by this document.
+- Existing production data is not automatically migrated to the portable database.
+- Model servers and live payment services are not provisioned by the source import.
 
-## Verification limits
-- Browser visual QA and camera hardware: not performed; no supported control-browser capability is available in this environment.
-- Hosted sign-in, production record writes and real-device pose model loading have not been manually exercised.
+## Outstanding operational checks
 
-## Not connected / not complete
+Real-device microphone/camera behavior, live model accuracy, accessibility review,
+production load testing, account-transition testing, and backup restoration drills
+remain necessary before a commercial launch. Automated integration checks do not
+prove those operational properties.
 
-Real payments, manufacturing fulfillment, brand inventory synchronization, shipping, tax processing, staff notifications, generative image AI, Render, Supabase, public access and GitHub mirroring. These are not advertised as live in the app.
+See [SELF_HOSTING.md](docs/SELF_HOSTING.md) and
+[PRODUCT_ARCHITECTURE.md](docs/PRODUCT_ARCHITECTURE.md) for the detailed behavior and
+limitations.
