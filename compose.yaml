@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    ports:
+      - '127.0.0.1:3000:3000'
+    volumes:
+      - sator-data:/var/data/sator
+    environment:
+      SATOR_DATA_DIR: /var/data/sator
+      # Optional private-network services. Blank values keep controls inactive.
+      SATOR_ALLOW_PRIVATE_AI: 'true'
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_VISION_MODEL: ${AI_VISION_MODEL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      SPEECH_BASE_URL: ${SPEECH_BASE_URL:-}
+      SPEECH_API_KEY: ${SPEECH_API_KEY:-}
+    restart: unless-stopped
+volumes:
+  sator-data:

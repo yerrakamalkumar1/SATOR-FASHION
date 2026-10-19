@@ -1,0 +1,25 @@
+# Prepared for review. No Render service has been created or charged.
+services:
+  - type: web
+    name: sator-fashion
+    runtime: node
+    plan: starter
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run build:node
+    startCommand: node .next/standalone/server.js
+    healthCheckPath: /api/health
+    autoDeployTrigger: 'off'
+    disk:
+      name: sator-data
+      mountPath: /var/data
+      sizeGB: 10
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: '1'
+      - key: HOSTNAME
+        value: 0.0.0.0
+      - key: SATOR_DATA_DIR
+        value: /var/data/sator
