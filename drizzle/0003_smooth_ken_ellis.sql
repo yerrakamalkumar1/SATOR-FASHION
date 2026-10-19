@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX `one_piece_conversation` ON `conversations` (`buyer_id`,`designer_id`,`item_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `one_bid_per_designer` ON `design_bids` (`request_id`,`designer_id`);
