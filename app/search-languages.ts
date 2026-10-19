@@ -1,0 +1,23 @@
+export const searchLanguages=[
+ {code:'en',speech:'en-IN',name:'English'},
+ {code:'te',speech:'te-IN',name:'తెలుగు · Telugu'},
+ {code:'hi',speech:'hi-IN',name:'हिन्दी · Hindi'},
+ {code:'fr',speech:'fr-FR',name:'Français · French'},
+ {code:'zh',speech:'zh-CN',name:'中文 · Chinese (Mandarin)'},
+ {code:'ta',speech:'ta-IN',name:'தமிழ் · Tamil'},
+ {code:'kn',speech:'kn-IN',name:'ಕನ್ನಡ · Kannada'},
+ {code:'ml',speech:'ml-IN',name:'മലയാളം · Malayalam'},
+ {code:'bn',speech:'bn-IN',name:'বাংলা · Bengali'},
+ {code:'mr',speech:'mr-IN',name:'मराठी · Marathi'},
+ {code:'gu',speech:'gu-IN',name:'ગુજરાતી · Gujarati'},
+ {code:'pa',speech:'pa-IN',name:'ਪੰਜਾਬੀ · Punjabi'},
+ {code:'ur',speech:'ur-PK',name:'اردو · Urdu'},
+ {code:'es',speech:'es-ES',name:'Español · Spanish'},
+ {code:'de',speech:'de-DE',name:'Deutsch · German'},
+ {code:'ar',speech:'ar-SA',name:'العربية · Arabic'},
+ {code:'ja',speech:'ja-JP',name:'日本語 · Japanese'},
+ {code:'ko',speech:'ko-KR',name:'한국어 · Korean'},
+ {code:'pt',speech:'pt-BR',name:'Português · Portuguese'},
+ {code:'ru',speech:'ru-RU',name:'Русский · Russian'},
+] as const;
+export type SearchLanguage=typeof searchLanguages[number]['code'];

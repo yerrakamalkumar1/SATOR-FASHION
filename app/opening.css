@@ -1,0 +1,34 @@
+/* A wordmark-only opening, inspired by the supplied short reveal. */
+.opening-content:focus{outline:none}
+.opening-content[hidden]{display:none!important}
+.opening-stage{position:fixed;inset:0;z-index:1000;min-height:100svh;overflow:hidden;background:#060706;color:#f4f1e9;display:grid;grid-template-rows:auto 1fr auto;font-family:Arial,Helvetica,sans-serif;isolation:isolate;color-scheme:dark}
+.opening-glow{position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 48%,#c0a56b09 0,transparent 53%);pointer-events:none}
+.opening-top{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:30px 42px;color:#9d9b90}
+.opening-top>span{font-size:8px;letter-spacing:2.4px}
+.opening-top button{display:flex;align-items:center;gap:9px;padding:12px;font-size:10px;color:#bcb8aa}
+.opening-signature{align-self:center;text-align:center;margin:0 22px 16px}
+.opening-signature h1{margin:0;padding-left:.24em;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:clamp(48px,7.5vw,91px);line-height:1.2;letter-spacing:.24em;color:#f4f1e9;animation:opening-name 1.25s cubic-bezier(.2,.7,.3,1) both}
+.opening-rule{width:29px;height:1px;background:#b9a47b;margin:27px auto 23px;animation:opening-detail .9s .65s both}
+.opening-signature p{font-size:8px;letter-spacing:3.4px;font-weight:400;margin:0;color:#c0b69f;animation:opening-detail 1s .9s both}
+.opening-bottom{position:relative;display:flex;flex-direction:column;align-items:center;gap:15px;padding:25px 24px max(32px,env(safe-area-inset-bottom));animation:opening-detail .8s .3s both}
+.opening-enter{display:flex;align-items:center;gap:24px;border:1px solid #9b8c6e63;border-radius:999px;padding:14px 23px;font-size:10px;letter-spacing:.7px;color:#e8ddc8;background:#b7a07608;transition:background .2s,border-color .2s}
+.opening-enter:hover{border-color:#c1ad84;background:#b7a07618}
+.opening-bottom>span{font-size:8px;letter-spacing:.6px;color:#99978c}
+.opening-skip{position:absolute;right:42px;bottom:42px;padding:12px 0;font-size:10px;color:#a5a196}
+.opening-stage button:focus-visible,.opening-controls button:focus-visible{outline:2px solid #bda678;outline-offset:5px;border-radius:4px}
+.opening-wash{position:absolute;width:150vmax;height:150vmax;left:50%;top:50%;margin:-75vmax 0 0 -75vmax;border-radius:50%;background:#faf9f4;transform:scale(0);pointer-events:none;z-index:3}
+.opening-stage.is-opening{animation:opening-stage-out .2s .65s ease both;pointer-events:none}
+.opening-stage.is-opening .opening-wash{animation:opening-circle .7s cubic-bezier(.7,0,.25,1) both}
+.opening-stage.is-opening .opening-signature,.opening-stage.is-opening .opening-top,.opening-stage.is-opening .opening-bottom{opacity:0;transition:opacity .2s;animation:none}
+.opening-controls{display:flex;align-items:center;gap:13px}
+.opening-controls button{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:9px;min-height:40px;padding:6px;color:inherit;opacity:.75;background:none;border:0;white-space:nowrap}
+.opening-controls button:hover{opacity:1}
+.entry-header .opening-controls{color:#c5bdab}
+.journey-header .opening-controls{color:#59634f;margin-left:auto}
+.journey-header:has(.opening-controls)>span{margin-right:auto}
+@keyframes opening-name{from{opacity:0;transform:translateY(8px);filter:blur(5px);letter-spacing:.34em}to{opacity:1;transform:translateY(0);filter:blur(0);letter-spacing:.24em}}
+@keyframes opening-detail{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes opening-circle{to{transform:scale(1)}}
+@keyframes opening-stage-out{to{opacity:0}}
+@media(max-width:760px){.opening-top{padding:20px 17px}.opening-top>span{font-size:6px;letter-spacing:1.5px}.opening-signature h1{font-size:51px}.opening-signature p{font-size:7px;letter-spacing:2.5px}.opening-rule{margin:23px auto 21px}.opening-bottom{padding-bottom:max(30px,env(safe-area-inset-bottom));gap:14px}.opening-skip{position:static;padding:7px 13px;margin-top:3px}.opening-controls{gap:6px}.opening-controls button{min-width:33px}.opening-controls button span{display:none}.journey-header:has(.opening-controls){gap:10px}.journey-header:has(.opening-controls)>span{display:none}}
+@media(prefers-reduced-motion:reduce){.opening-stage *{animation:none!important;transition:none!important}.opening-stage.is-opening{animation:opening-stage-out .15s ease both}.opening-stage.is-opening .opening-wash{display:none}}
