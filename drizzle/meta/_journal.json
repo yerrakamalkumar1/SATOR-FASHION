@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1792336986031,
+      "tag": "0000_dizzy_purple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792339289043,
+      "tag": "0001_dapper_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792368748850,
+      "tag": "0002_mixed_juggernaut",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1792369189065,
+      "tag": "0003_smooth_ken_ellis",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792369965759,
+      "tag": "0004_hot_phalanx",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792370989078,
+      "tag": "0005_bouncy_bucky",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792372963585,
+      "tag": "0006_yummy_moira_mactaggert",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792374855193,
+      "tag": "0007_premium_quicksilver",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792377546915,
+      "tag": "0008_intelligent_retrieval",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792378573421,
+      "tag": "0009_curious_white_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792382390535,
+      "tag": "0010_low_butterfly",
+      "breakpoints": true
+    }
+  ]
+}
