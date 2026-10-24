@@ -1,8 +1,8 @@
 import {env} from 'cloudflare:workers';
 import {getAppUser} from '../../auth';
-import {allowWrite} from '../../lib/security';
+import {allowWrite,originOK} from '../../lib/security';
 export async function POST(request:Request){
-const origin=request.headers.get('origin');if(origin&&origin!==new URL(request.url).origin)return Response.json({error:'Invalid origin'},{status:403});
+if(!originOK(request))return Response.json({error:'Invalid origin'},{status:403});
 const user=await getAppUser();if(!user)return Response.json({error:'Sign in to upload artwork.'},{status:401});if(!await allowWrite(user.userId,'uploads',15))return Response.json({error:'Please wait before uploading more files.'},{status:429});if(!env.BUCKET)return Response.json({error:'Uploads unavailable'},{status:503});
 if(Number(request.headers.get('content-length')||0)>20_000_000)return Response.json({error:'Media must be under 20 MB.'},{status:413});
 const data=await request.arrayBuffer();if(data.byteLength>20_000_000||data.byteLength<12)return Response.json({error:'Use a supported image or MP4 under its size limit.'},{status:400});
