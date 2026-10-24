@@ -16,6 +16,8 @@ class Statement{
 }
 globalThis.__testEnv={DB:{prepare:q=>new Statement(q),batch:async rows=>{sqlite.exec('BEGIN');try{const results=[];for(const row of rows)results.push(await row.run());sqlite.exec('COMMIT');return results;}catch(e){sqlite.exec('ROLLBACK');throw e;}}}};
 globalThis.__testHeaders=new Headers();
+const requestOrigin=process.env.SATOR_TEST_INTERNAL_ORIGIN||'https://sator.test';
+if(process.env.SATOR_TEST_INTERNAL_ORIGIN)globalThis.__testEnv.RENDER_EXTERNAL_URL='https://sator.test';
 mkdirSync('.sites-runtime',{recursive:true});
 await build({entryPoints:{auth:'app/api/auth/route.ts',session:'app/api/session/route.ts',store:'app/api/store/route.ts',journey:'app/api/journey/route.ts',portal:'app/api/portal/route.ts'},outdir:'.sites-runtime/email-auth-tests',outExtension:{'.js':'.mjs'},bundle:true,platform:'node',format:'esm',plugins:[{name:'request-and-storage',setup(b){
  b.onResolve({filter:/^next\/headers$/},()=>({path:'headers',namespace:'mock'}));
@@ -30,7 +32,7 @@ const cookieOf=response=>response.headers.get('set-cookie')?.split(';')[0]||'';
 async function post(api,data,cookie='',headers={}){
  const h=new Headers({origin:'https://sator.test','Content-Type':'application/json','cf-connecting-ip':'192.0.2.5',cookie,...headers});
  globalThis.__testHeaders=h;
- const response=await apis[api].POST(new Request('https://sator.test/api/'+api,{method:'POST',headers:h,body:typeof data==='string'?data:JSON.stringify(data)}));
+ const response=await apis[api].POST(new Request(requestOrigin+'/api/'+api,{method:'POST',headers:h,body:typeof data==='string'?data:JSON.stringify(data)}));
  return {response,status:response.status,data:await response.json(),cookie:cookieOf(response)};
 }
 async function get(api,cookie='',headers={}){globalThis.__testHeaders=new Headers({cookie,...headers});const response=await apis[api].GET(new Request('https://sator.test/api/'+api,{headers:globalThis.__testHeaders}));return {status:response.status,data:await response.json()};}
@@ -38,8 +40,21 @@ let passed=0;const pass=label=>{passed++;console.log('PASS '+label);};
 const originalCount=()=>sqlite.prepare('SELECT count(*) AS n FROM email_accounts').get().n;
 assert.equal((await post('auth',A,'',{origin:'https://other.test'})).status,403);
 assert.equal((await post('auth',A,'',{origin:''})).status,403);
+assert.equal((await apis.auth.POST(new Request(requestOrigin+'/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(A)}))).status,403);
+assert.equal((await post('auth',A,'',{'sec-fetch-site':'cross-site'})).status,403);
+assert.equal((await post('auth',A,'',{origin:'https://other.test',host:'other.test','x-forwarded-host':'other.test','x-forwarded-proto':'https'})).status,403);
+if(process.env.SATOR_TEST_INTERNAL_ORIGIN)assert.equal((await post('auth',A,'',{origin:requestOrigin})).status,403);
 assert.equal((await post('auth',A,'',{'content-type':'text/plain'})).status,415);
 assert.equal(originalCount(),0);pass('Cross-origin, missing-Origin and simple-content signup are rejected');
+globalThis.__testEnv.SATOR_PUBLIC_ORIGIN='https://custom.sator.test';
+assert.equal((await post('auth',{})).status,403);
+assert.equal((await post('auth',{},'',{origin:'https://custom.sator.test'})).status,400);
+for(const configured of ['not-a-url','https://sator.test/unexpected','https://user@sator.test','https://sator.test?query=1','https://sator.test#fragment','file:///']){
+ globalThis.__testEnv.SATOR_PUBLIC_ORIGIN=configured;
+ assert.equal((await post('auth',{})).status,403);
+}
+delete globalThis.__testEnv.SATOR_PUBLIC_ORIGIN;
+pass('Explicit public origins override internal addresses and invalid configuration fails closed');
 assert.equal((await post('auth',{...A,password:'short'})).status,400);
 assert.equal((await post('auth',{...A,password:'password1234'})).status,400);
 assert.equal((await post('auth',{...A,phone:'invalid-number'})).status,400);
@@ -62,6 +77,7 @@ assert.equal((await get('session','__Host-sator_session=invalid',legacy)).data.u
 pass('Existing provider identity remains available, with no email-based account linking or invalid-cookie fallback');
 const profile={action:'styleProfile',mode:'buy',name:A.name,city:'Hyderabad',bio:'Buyer style',portfolio:'',sellReadyMade:false,brandName:'',weights:{'old-money':70,streetwear:30}};
 assert.equal((await post('journey',profile,signup.cookie)).status,200);
+assert.equal((await post('store',{action:'profile',name:A.name,bio:'Buyer style',role:'customer'},signup.cookie)).status,200);
 assert.equal((await post('journey',{action:'measurements',details:{unit:'cm',chest:96,waist:80,hips:95,shoulder:44,sleeve:60,inseam:78,height:178,notes:'Private buyer fit'}},signup.cookie)).status,200);
 const bSignup=await post('auth',B);assert.equal(bSignup.status,201);
 const bId=(await get('session',bSignup.cookie)).data.user.id;
