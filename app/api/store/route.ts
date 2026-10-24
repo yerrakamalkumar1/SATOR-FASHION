@@ -5,7 +5,7 @@ import {eq,and,desc,sql,or,inArray} from 'drizzle-orm';
 import {blocked,dbRaw,publicContentSQL} from '../../lib/community';
 import {actionSchema} from '../../validation';
 import {catalog,priceOf} from '../../model';
-import {publicItem,hasRole,allowWrite,ownAsset} from '../../lib/security';
+import {publicItem,hasRole,allowWrite,ownAsset,originOK} from '../../lib/security';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 export async function GET(){try{
@@ -20,7 +20,7 @@ const [profile,designs,bookmarks,likes,cart,orders,inquiries]=await Promise.all(
 return json({...common,profile:profile[0]||null,designs:designs.map(d=>({...d,config:JSON.parse(d.config)})),bookmarks,likes,cart:cart.map(c=>({...c,config:JSON.parse(c.config)})),orders:orders.map(o=>({...o,items:JSON.parse(o.items)})),inquiries});
 }catch(e){console.error('Store read failed',e instanceof Error?e.message:'unknown');return json({error:'Your data could not be loaded. Please try again.'},503);}}
 export async function POST(request:Request){try{
-const origin=request.headers.get('origin');if(origin&&origin!==new URL(request.url).origin)return json({error:'Invalid request origin'},403);
+if(!originOK(request))return json({error:'Invalid request origin'},403);
 if(Number(request.headers.get('content-length')||0)>30000)return json({error:'Request too large'},413);
 const user=await getAppUser();if(!user)return json({error:'Sign in to save your work.'},401);
 const raw=await request.text();if(raw.length>30000)return json({error:'Request too large'},413);
