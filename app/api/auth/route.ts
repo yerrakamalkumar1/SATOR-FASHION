@@ -1,5 +1,6 @@
 import {z} from 'zod';
 import {getChatGPTUser} from '../../chatgpt-auth';
+import {originOK} from '../../lib/request-origin';
 import {authDb,hashPassword,verifyPassword,DUMMY_HASH,newToken,tokenHash,sessionInsert,sessionCookie,revokeSession,allowAuthAttempt,type EmailAccount} from '../../lib/email-auth';
 export const dynamic='force-dynamic';
 const email=z.string().trim().toLowerCase().email().max(254);
@@ -21,7 +22,7 @@ async function readBody(request:Request){
 }
 export async function POST(request:Request){
  // JSON + a same-origin Origin header prevents login and logout CSRF.
- if(request.headers.get('origin')!==new URL(request.url).origin||request.headers.get('sec-fetch-site')==='cross-site')return json({error:'Please submit this form from ŚATOR.'},403);
+ if(!originOK(request,true))return json({error:'Please submit this form from ŚATOR.'},403);
  if(request.headers.get('content-type')?.split(';')[0].trim()!=='application/json')return json({error:'Use the account form to continue.'},415);
  let data;try{data=await readBody(request);}catch{return json({error:'Check the form and try again.'},400);}
  const parsed=schema.safeParse(data);if(!parsed.success)return json({error:parsed.error.issues[0]?.message||'Check the form fields.'},400);
