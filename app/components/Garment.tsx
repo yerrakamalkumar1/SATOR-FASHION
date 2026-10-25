@@ -1,5 +1,6 @@
 'use client';
 import {useId} from 'react';
+import {studioSvg} from '../studio-graphics';
 import type {DesignConfig} from '../model';
 export function Graphic({type,ink}:{type:DesignConfig['graphic'];ink:string}){
  if(type==='orbit')return <g fill="none" stroke={ink} strokeWidth="2.8"><ellipse rx="50" ry="25" transform="rotate(-25)"/><ellipse rx="50" ry="25" transform="rotate(25)"/><ellipse rx="50" ry="25" transform="rotate(90)"/><circle r="10" fill={ink}/><circle cx="46" cy="-22" r="5" fill={ink}/></g>;
@@ -10,7 +11,7 @@ export function Graphic({type,ink}:{type:DesignConfig['graphic'];ink:string}){
  return null;
 }
 export default function Garment({config,back=false,className='',id,flat=false,onPointerDown}:{config:DesignConfig;back?:boolean;className?:string;id?:string;flat?:boolean;onPointerDown?:(e:React.PointerEvent<SVGSVGElement>)=>void}){
- const uid=useId().replace(/:/g,'');const hoodie=config.garment==='hoodie';const shape=hoodie?'M143 73Q150 30 200 29Q250 30 257 73L285 86L339 231L294 250L269 169L274 370Q200 387 126 370L131 169L106 250L61 231L115 86Z':'M143 66Q164 86 200 86Q236 86 257 66L311 90L348 164L298 191L271 149L277 366Q200 381 123 366L129 149L102 191L52 164L89 90Z';
+ const uid=useId().replace(/:/g,'');if(config.studio)return <div id={id} className={className} style={{width:'100%',aspectRatio:'600/640'}} dangerouslySetInnerHTML={{__html:studioSvg(config.studio,back?'back':'front',false,uid)}}/>;const hoodie=config.garment==='hoodie';const shape=hoodie?'M143 73Q150 30 200 29Q250 30 257 73L285 86L339 231L294 250L269 169L274 370Q200 387 126 370L131 169L106 250L61 231L115 86Z':'M143 66Q164 86 200 86Q236 86 257 66L311 90L348 164L298 191L271 149L277 366Q200 381 123 366L129 149L102 191L52 164L89 90Z';
  const font=config.font==='serif'?'Georgia,serif':config.font==='mono'?'monospace':'Arial,sans-serif';
  return <svg id={id} className={className} viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label={`${config.color} ${config.garment} design: ${back?config.backText:config.text}`} onPointerDown={onPointerDown}>
  <defs><linearGradient id={'shade'+uid} x1="0" x2="1"><stop offset="0" stopColor="#000" stopOpacity=".13"/><stop offset=".22" stopColor="#fff" stopOpacity=".05"/><stop offset=".48" stopColor="#fff" stopOpacity=".1"/><stop offset=".76" stopColor="#000" stopOpacity=".04"/><stop offset="1" stopColor="#000" stopOpacity=".2"/></linearGradient><clipPath id={'clip'+uid}><path d={shape}/></clipPath><filter id={'shadow'+uid} x="-30%" y="-20%" width="160%" height="160%"><feDropShadow dx="0" dy="15" stdDeviation="12" floodOpacity=".16"/></filter></defs>
