@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {artworkPaths} from '../../lib/studio-access';
 import {getAppUser} from '../../auth';
 import {dbRaw,noStore,blocked} from '../../lib/community';
 import {allowWrite,originOK,ownAsset} from '../../lib/security';
@@ -48,7 +49,7 @@ export async function POST(request:Request){
  try{
   if(!originOK(request))return noStore({error:'Invalid origin.'},403);
   const user=await getAppUser();if(!user)return noStore({error:'Sign in required.'},401);
-  const raw=await request.text();if(raw.length>20000)return noStore({error:'Request too large.'},413);
+  const raw=await request.text();if(raw.length>220000)return noStore({error:'Request too large.'},413);
   let value:unknown;try{value=JSON.parse(raw);}catch{return noStore({error:'Invalid JSON.'},400);}
   const parsed=schema.safeParse(value);if(!parsed.success)return noStore({error:parsed.error.issues[0]?.message||'Check your details.'},400);
   const a=parsed.data,uid=user.userId,db=dbRaw(),now=new Date().toISOString();
@@ -78,7 +79,7 @@ export async function POST(request:Request){
   async function commission(id:string){const c=await db.prepare('SELECT * FROM commissions WHERE id=? AND (buyer_id=? OR designer_id=?)').bind(id,uid,uid).first<{id:string;buyer_id:string;designer_id:string}>();return c&&!await blocked(c.buyer_id,c.designer_id)?c:null;}
   if(a.action==='project'){
    if(a.reference&&!await ownAsset(a.reference,uid))return noStore({error:'Use your own reference photo.'},400);
-   if(!await creativeImage(a.config.image,uid))return noStore({error:'Choose your own artwork or published artwork.'},400);
+   if(!(await Promise.all(artworkPaths(a.config).map(path=>creativeImage(path,uid)))).every(Boolean))return noStore({error:'Choose your own artwork or published artwork.'},400);
    const c=a.commissionId?await commission(a.commissionId):null;if(a.commissionId&&!c)return noStore({error:'Accepted commission not found.'},404);
    const existing=await creativeProject(a.id,uid);if(existing)return existing.owner_id===uid&&existing.title===a.title&&existing.brief===a.brief&&existing.reference===a.reference&&existing.config===JSON.stringify(a.config)&&existing.commission_id===(a.commissionId||null)?noStore({ok:true,id:a.id}):noStore({error:'This project was already created. Open it before making further changes.'},409);
    if(await count('design_projects','owner_id')>=100)return noStore({error:'You have reached the 100-project limit.'},409);
@@ -97,7 +98,7 @@ export async function POST(request:Request){
   }
   if(a.action==='revision'){
    const existing=await db.prepare('SELECT author_id,config,note FROM project_revisions WHERE id=? AND project_id=?').bind(a.id,id).first<{author_id:string;config:string;note:string}>();if(existing)return existing.author_id===uid&&existing.config===JSON.stringify(a.config)&&existing.note===a.note?noStore({ok:true,id:a.id}):noStore({error:'This revision identifier is already used.'},409);
-   if(!await creativeImage(a.config.image,uid,id))return noStore({error:'Use artwork you can access in this project.'},400);
+   if(!(await Promise.all(artworkPaths(a.config).map(path=>creativeImage(path,uid,id)))).every(Boolean))return noStore({error:'Use artwork you can access in this project.'},400);
    if(Number(p.version)>=100)return noStore({error:'This project has reached 100 revisions. Start another project.'},409);
    const config=JSON.stringify(a.config);
    const r=await db.batch([
