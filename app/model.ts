@@ -1,4 +1,5 @@
-export type DesignConfig={garment:'tee'|'hoodie';color:string;ink:string;text:string;subtext:string;graphic:'orbit'|'sun'|'waves'|'flower'|'grid'|'none';font:'sans'|'serif'|'mono';x:number;y:number;scale:number;rotation:number;backText:string;image:string;};
+import type {StudioDocument} from './studio-model';
+export type DesignConfig={studio?:StudioDocument;garment:'tee'|'hoodie';color:string;ink:string;text:string;subtext:string;graphic:'orbit'|'sun'|'waves'|'flower'|'grid'|'none';font:'sans'|'serif'|'mono';x:number;y:number;scale:number;rotation:number;backText:string;image:string;};
 export type Product={id:string;title:string;creator:string;description:string;category:string;kind:string;config:DesignConfig;sample?:boolean;userId?:string;published?:number;createdAt?:string;};
 export const defaultConfig:DesignConfig={garment:'tee',color:'#e7e3d8',ink:'#292c28',text:'OFFLINE',subtext:'MORE LIFE. LESS SCROLL.',graphic:'orbit',font:'sans',x:0,y:0,scale:1,rotation:0,backText:'',image:''};
 export const priceOf=(config:DesignConfig)=>config.garment==='hoodie'?159900:99900;

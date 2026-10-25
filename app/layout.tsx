@@ -12,6 +12,7 @@ import "./search-tools.css";
 import "./appearance.css";
 import "./appearance-generated.css";
 import "./creative.css";
+import "./atelier.css";
 
 export const metadata: Metadata = {
   title: "ŚATOR — Wear your imagination",
