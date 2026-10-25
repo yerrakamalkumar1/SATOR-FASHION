@@ -141,4 +141,27 @@ const c0=await get('comments','?item='+design.id),c1=await get('comments','?item
 globalThis.__testUser=B;assert.equal((await post('member',{action:'block',targetId:A.userId,blocked:true})).status,200);assert.ok((await get('member')).blocked.some(p=>p.userId===A.userId));globalThis.__testUser=A;assert.equal((await post('store',{action:'comment',productId:design.id,body:'Blocked interaction'})).status,403);assert.equal((await post('store',{action:'like',productId:design.id})).status,403);assert.equal((await post('portal',{action:'follow',targetId:B.userId})).status,403);assert.equal((await post('journey',{action:'conversation',designerId:B.userId,context:'Bypass',itemId:''})).status,403);globalThis.__testUser=B;assert.equal((await post('member',{action:'block',targetId:A.userId,blocked:false})).status,200);assert.equal((await get('member')).blocked.length,0);pass('Profile blocking prevents comments, likes, follows and messages; account settings can unblock the same member');
 assert.equal((await post('member',{action:'preferences',values:{showSales:false}},'https://evil.test')).status,403);assert.equal((await post('member',{action:'preferences',values:{user_id:A.userId}})).status,400);globalThis.__testUser=null;assert.equal((await get('member')).status,401);assert.equal((await get('comments','?item='+design.id)).status,401);assert.equal((await post('member',{action:'preferences',values:{showSales:false}})).status,401);pass('New settings and comment routes enforce authentication, reject cross-origin writes, and forbid arbitrary columns');
 
+// New registrations need no role, published work or successful index update to be found.
+globalThis.__testUser=A;
+const freshId='kamal-new-account';
+sqlite.prepare("INSERT INTO profiles(user_id,name,bio,created_at) VALUES(?,?,?,?)").run(freshId,'Kamal','New registered member',new Date().toISOString());
+sqlite.prepare("DELETE FROM search_index WHERE kind='person' AND id=?").run(freshId);
+for(const query of ['Kamal',' KAMAL ','kam','kamal-new-account']){
+ const found=await get('discovery','?'+new URLSearchParams({q:query,kind:'people'}));
+ assert.equal(found.status,200);assert.equal(found.people[0].userId,freshId);assert.equal(found.items.length,0);
+ assert.equal(found.people[0].designCount,0);assert.equal(found.people[0].roles,null);
+}
+assert.equal((await get('discovery','?q=Kamal&kind=creators')).people.some(p=>p.userId===freshId),false);
+assert.equal((await get('discovery','?q=kamal-new-account&kind=buyers')).people[0].userId,freshId);
+assert.equal((await get('discovery','?q=private-buyer%40example.test')).people.length,0);
+assert.equal((await get('discovery','?q=zzzzunregistered')).people.length,0);
+assert.equal((await get('discovery',"?q=zzzzunregistered%27%20OR%201%3D1%20--")).people.length,0);
+pass('Literal member names and exact IDs work without a search-index row, role or published work; filters and private emails stay protected');
+globalThis.__testUser={userId:freshId,fullName:'Kamal',email:'fixture-kamal@example.test'};
+assert.equal((await post('member',{action:'preferences',values:{discoverable:false}})).status,200);
+globalThis.__testUser=A;
+assert.equal((await get('discovery','?q=kamal-new-account&kind=people')).people.length,0);
+assert.ok(!(await get('discovery','?q=Kamal&kind=people')).people.some(p=>p.userId===freshId));
+pass('Direct name and ID fallback never bypasses a member’s search-visibility preference');
+
 console.log(`${passed} cross-account community scenarios passed with real routes, migrations and isolated SQLite fixtures.`);sqlite.close();
