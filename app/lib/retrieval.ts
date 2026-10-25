@@ -31,7 +31,13 @@ export async function searchContent(query:string,options:ContentSearchOptions={}
  return (await dbRaw().prepare(sql).bind(owner,owner,budget,budget,...(match?[match,phrase]:[]),Math.min(100,limit),offset).all<PublicContent>()).results;
 }
 export async function searchPeople(query:string,where='1=1',offset=0){
- // Keep name searches literal: garment synonyms must never invent people.
- const match=await searchExpression(query,false);if(query.trim()&&!match)return [];
- return (await dbRaw().prepare(`SELECT p.* FROM (${publicPeopleSQL}) p ${match?"JOIN search_index si ON si.id=p.userId AND si.kind='person'":''} WHERE discoverable=1 AND (${where}) ${match?'AND search_index MATCH ?':''} ORDER BY ${match?'CASE WHEN lower(p.name)=? OR lower(p.brandName)=? THEN 0 ELSE 1 END,bm25(search_index,0,0,0,8,1,2,4),':''}p.name COLLATE NOCASE,p.userId LIMIT 25 OFFSET ?`).bind(...(match?[match,query.toLowerCase(),query.toLowerCase()]:[]),offset).all<PublicPerson>()).results;
+ // Profile rows are authoritative. A delayed index must not hide a new member.
+ // Match only public names, labels and account IDs; never email or private data.
+ const phrase=query.trim().normalize('NFKC').toLowerCase(),terms=rawTerms(phrase);
+ if(phrase&&!terms.length)return [];
+ const match=phrase?await searchExpression(phrase,false):null;
+ const literal=terms.map(()=>"instr(lower(coalesce(p.name,'')||' '||coalesce(p.brandName,'')),?)>0").join(' AND ');
+ const condition=phrase?`AND (lower(p.userId)=? OR (${literal}) ${match?"OR EXISTS (SELECT 1 FROM search_index WHERE id=p.userId AND kind='person' AND search_index MATCH ?)":''})`:'';
+ const rank=phrase?"CASE WHEN lower(p.userId)=? OR lower(p.name)=? OR lower(p.brandName)=? THEN 0 ELSE 1 END,":'';
+ return (await dbRaw().prepare(`SELECT p.* FROM (${publicPeopleSQL}) p WHERE discoverable=1 AND (${where}) ${condition} ORDER BY ${rank}p.name COLLATE NOCASE,p.userId LIMIT 25 OFFSET ?`).bind(...(phrase?[phrase,...terms,...(match?[match]:[]),phrase,phrase,phrase]:[]),offset).all<PublicPerson>()).results;
 }
