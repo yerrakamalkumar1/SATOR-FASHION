@@ -1,12 +1,13 @@
 # Advanced design studio
 
-The existing post-login Design studio now opens a Fabric.js editor for customers, creators and startup members. Existing accounts, onboarding, community, orders and Render deployment remain in place.
+This release changes the existing post-login Design Studio for customers, creators and startup members. New design journeys begin with a Men’s or Women’s collection choice, then a visual garment catalogue, then the Fabric.js canvas. Opening an existing design or remix goes directly to its editor. The release remains on the review branch; the live Render site is unchanged.
 
 ## Included
 
 - 175 editable concept templates under two main collections: Men’s and Women’s (shared essentials are included in both), including Indian ethnic and fusion categories. Templates use parametric SVG silhouette families; these are concept illustrations, not production cutting patterns or unique photorealistic garment meshes.
 - 48 original editable garment samples across Old Money, Baggy / Streetwear, Formals, Casuals, Vintage, Custom Tailoring, Minimal and Experimental. The personal feed initially selects the strongest style preference; each sample opens the actual garment document in the studio.
-- Design Yourself, Design an Idea, nine style packs, a searchable catalogue, saved drafts and community remix starting points.
+- Men’s and Women’s entry cards, with 63 and 107 visible garment options respectively after duplicate shared essentials are removed. Every card contains an original SVG concept preview and opens that same editable shape, colour and fabric. Filters include Formals, Baggy / Streetwear, Casuals, Dresses, Skirts, Indian & fusion, tailoring separates and more. Search accepts names and category terms such as “formal pants”. Anyone can use either collection.
+- Start with an idea, nine style packs, saved drafts and community remix starting points. The editor’s Garment tool links back to the complete visual library.
 - Front and back workspaces, plus illustrative sleeve workspaces only for applicable garments. Older non-sleeved documents retain any saved sleeve artwork under clearly labeled Artwork detail workspaces. Controls follow the silhouette’s supported changes.
 - Fabric.js object selection, drag, scale, rotate, freehand drawing, text, curved text, custom colors, uploaded images and shapes. Properties include opacity, outline, spacing, mirror, repeat, layer order, hide, lock, duplicate and basic group horizontal movement.
 - 118 font choices, 300 seeded slogans including Telugu/Hindi, 13 pattern choices and eight illustrative fabric textures. Google-hosted font choices load on demand; the system-font fallbacks work when a web font cannot load. Random designs are procedural, not generative AI.
@@ -22,7 +23,7 @@ Explore includes a People tab that searches every account type. Name, brand and 
 
 ## Data and access
 
-The optional `studio` property extends the existing validated DesignConfig JSON. Legacy T-shirt and hoodie designs still render and migrate into editable layers. No account migration is required. `0012_studio_preferences.sql` adds an account-owned garment-catalogue preference and is applied by the existing Node migration runner.
+The optional `studio` property extends the existing validated DesignConfig JSON. Legacy T-shirt and hoodie designs still render and migrate into editable layers. No account migration is required. `0012_studio_preferences.sql` adds an account-owned garment-catalogue preference and is registered in both the Drizzle deployment journal and the existing Node migration runner.
 
 `GET /api/studio` returns the authenticated catalogue and preference, optionally filtered by `audience`. `POST /api/studio` accepts validated `preference` or `random` requests with same-origin protection and rate limiting. Saves and publishing continue through `/api/store`. `createId` provides idempotent initial saves. Uploaded images in all layers require ownership or existing published access. Project revision paths have the same nested-artwork protection.
 
@@ -32,7 +33,7 @@ The design JSON is not end-to-end encrypted. Existing HTTPS transport, password 
 
 Fabric.js 7.4.0 and jsPDF 3.0.4 browser bundles are pinned and self-hosted in `public/vendor`, alongside their MIT licenses. No paid API, provider account, API key or subscription is needed for this module. Existing package versions and the frozen lockfile are unchanged.
 
-Build: `node scripts/build-node.mjs`. Start: `node .next/standalone/server.js`. Retain the deployed public-origin environment setting used by the signup repair. Deploy the updated repository to the existing Render free service. Do not enable a paid disk or instance without a separate request.
+Node build: `node scripts/build-node.mjs`. Start: `node .next/standalone/server.js`. Worker build: `node scripts/run-framework.mjs build`. Retain the deployed public-origin environment setting used by the signup repair. Production release remains blocked until the deployment destination and preservation of its existing accounts/uploads are resolved. Do not enable a paid disk or instance without a separate request.
 
 ## Validation
 

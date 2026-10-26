@@ -42,3 +42,9 @@ The existing SQL is preserved byte-for-byte and is now registered in the journal
 The original ChatGPT-hosted project remains active with its existing DB and BUCKET bindings. It is a possible existing-host release destination, but using its address would not migrate Render-only accounts or uploads. No hosting switch, database merge, paid service or production deployment has been performed. Confirm the intended public destination before changing which site the user should use.
 
 The Render browser did not show a signed-in member after the handoff; it showed an account-creation form. No new account was submitted. Live Render member search remains unverified.
+
+## Collection-first wardrobe follow-up
+
+New Design Studio entries now present Men’s and Women’s collection cards before the garment library. Each collection includes visual, editable samples with visible Formals, Baggy / Streetwear and Casuals filters, plus its other relevant garment categories. Shared essentials appear in both collections without duplicate named cards. Selecting a sample loads its actual silhouette, colour and material; opening saved work still goes directly to the editor.
+
+The suite now totals 100 automated scenarios (13 studio, 45 community, 18 creative, 11 functional, 13 authentication). Desktop UI checks opened men’s formal trousers, added Telugu text and saved in the isolated fixture harness; women’s dresses opened correctly. The mobile catalogue showed no horizontal overflow and opened women’s tailored trousers with the Garment tool selected. These remain local checks, not production verification.
