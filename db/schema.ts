@@ -1,10 +1,16 @@
-import { sqliteTable, text, integer, primaryKey, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
+import { sqliteTable, text, integer, primaryKey, index, uniqueIndex, check } from 'drizzle-orm/sqlite-core';
 export const profiles = sqliteTable('profiles', {userId:text('user_id').primaryKey(),name:text('name').notNull(),bio:text('bio').notNull().default(''),role:text('role').notNull().default('customer'),createdAt:text('created_at').notNull()});
 export const memberPreferences=sqliteTable('member_preferences',{
  theme:text('theme').notNull().default('system'),textSize:text('text_size').notNull().default('standard'),density:text('density').notNull().default('comfortable'),motion:text('motion').notNull().default('system'),
  userId:text('user_id').primaryKey(),avatar:text('avatar').notNull().default(''),discoverable:integer('discoverable').notNull().default(1),showSales:integer('show_sales').notNull().default(1),
  notifyLikes:integer('notify_likes').notNull().default(1),notifyComments:integer('notify_comments').notNull().default(1),notifyFollows:integer('notify_follows').notNull().default(1),notifyMessages:integer('notify_messages').notNull().default(1),notifyOrders:integer('notify_orders').notNull().default(1),updatedAt:text('updated_at').notNull(),
 });
+export const studioPreferences=sqliteTable('studio_preferences',{
+ userId:text('user_id').primaryKey().notNull(),
+ audience:text('audience').notNull().default('Unisex'),
+ updatedAt:text('updated_at').notNull(),
+},t=>[check('studio_preferences_audience',sql`${t.audience} IN ('Menswear','Womenswear','Unisex')`)]);
 export const designs = sqliteTable('designs', {id:text('id').primaryKey(),userId:text('user_id').notNull(),title:text('title').notNull(),description:text('description').notNull().default(''),config:text('config').notNull(),category:text('category').notNull().default('Graphic'),kind:text('kind').notNull().default('creator'),published:integer('published').notNull().default(0),createdAt:text('created_at').notNull(),updatedAt:text('updated_at').notNull()},t=>[index('design_owner').on(t.userId),index('design_public').on(t.published)]);
 export const bookmarks=sqliteTable('bookmarks',{userId:text('user_id').notNull(),productId:text('product_id').notNull(),board:text('board').notNull().default('My inspiration'),createdAt:text('created_at').notNull()},t=>[primaryKey({columns:[t.userId,t.productId]})]);
 export const likes=sqliteTable('likes',{userId:text('user_id').notNull(),productId:text('product_id').notNull(),createdAt:text('created_at').notNull()},t=>[primaryKey({columns:[t.userId,t.productId]})]);
