@@ -19,7 +19,7 @@ class Statement{constructor(query,params=[]){this.query=query;this.params=params
 globalThis.__testEnv={DB:{prepare:q=>new Statement(q),batch:async statements=>{sqlite.exec('BEGIN');try{const out=[];for(const s of statements)out.push(await s.run());sqlite.exec('COMMIT');return out;}catch(e){sqlite.exec('ROLLBACK');throw e;}}}};
 globalThis.__testUser=null;
 mkdirSync('.sites-runtime',{recursive:true});
-await build({entryPoints:{store:'app/api/store/route.ts',studio:'app/api/studio/route.ts',model:'app/studio-model.ts',inspiration:'app/studio-inspiration.ts',validation:'app/studio-validation.ts',graphics:'app/studio-graphics.ts'},outdir:'.sites-runtime/studio-tests',outExtension:{'.js':'.mjs'},bundle:true,platform:'node',format:'esm',plugins:[{name:'test-isolation',setup(b){b.onResolve({filter:/[\/]auth$/},()=>({path:'auth',namespace:'mock'}));b.onResolve({filter:/^cloudflare:workers$/},()=>({path:'env',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='auth'?'export async function getAppUser(){return globalThis.__testUser;}':'export const env=globalThis.__testEnv;',loader:'js'}));}}],logLevel:'error'});
+await build({entryPoints:{store:'app/api/store/route.ts',studio:'app/api/studio/route.ts',model:'app/studio-model.ts',inspiration:'app/studio-inspiration.ts',validation:'app/studio-validation.ts',graphics:'app/studio-graphics.ts',wardrobe:'app/studio-wardrobe.ts'},outdir:'.sites-runtime/studio-tests',outExtension:{'.js':'.mjs'},bundle:true,platform:'node',format:'esm',plugins:[{name:'test-isolation',setup(b){b.onResolve({filter:/[\/]auth$/},()=>({path:'auth',namespace:'mock'}));b.onResolve({filter:/^cloudflare:workers$/},()=>({path:'env',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='auth'?'export async function getAppUser(){return globalThis.__testUser;}':'export const env=globalThis.__testEnv;',loader:'js'}));}}],logLevel:'error'});
 const {GET,POST}=await import(resolve('.sites-runtime/studio-tests/store.mjs'));
 const A={userId:'alice',fullName:'Alice Maker',displayName:'Alice',email:'alice@example.test'},B={userId:'bob',fullName:'Bob',displayName:'Bob',email:'bob@example.test'};
 const config={garment:'tee',color:'#e7e3d8',ink:'#292c28',text:'MY IDEA',subtext:'MADE BY ME',graphic:'orbit',font:'sans',x:0,y:0,scale:1,rotation:0,backText:'',image:''};
@@ -80,4 +80,23 @@ const {garmentPath}=await import(resolve('.sites-runtime/studio-tests/graphics.m
 assert.notEqual(garmentPath({...trousers,fit:'slim'}),garmentPath({...trousers,fit:'oversized'}));assert.notEqual(garmentPath({...trousers,length:'short'}),garmentPath({...trousers,length:'long'}));
 const tee=model.blankStudio(model.templates.find(t=>t.name==='T-shirt'));tee.sleeves='sleeveless';assert.equal(model.studioWorkspaces(tee).length,2);assert.equal(model.garmentControls(tee).sleeves,true);
 pass('Garment controls and detail workspaces match the silhouette while legacy artwork stays editable; trouser fit and length change the geometry');
+const wardrobe=await import(resolve('.sites-runtime/studio-tests/wardrobe.mjs'));
+for(const audience of ['Menswear','Womenswear']){
+ const garments=wardrobe.collectionTemplates(audience);
+ assert.equal(new Set(garments.map(t=>t.name)).size,garments.length);
+ assert.ok(garments.length>60);
+ for(const group of ['Formals','Baggy / Streetwear','Casuals'])assert.ok(wardrobe.wardrobeTemplates(audience,group).length>=3);
+ for(const t of garments){const sample=wardrobe.garmentSample(t);assert.equal(sample.templateId,t.id);assert.ok(studioSchema.safeParse(sample).success,t.name);}
+}
+assert.ok(wardrobe.wardrobeTemplates('Menswear','All garments','  FORMAL pants ').some(t=>t.name==='Pleated trousers'));
+assert.ok(wardrobe.wardrobeTemplates('Womenswear','Formals').some(t=>t.name==='Tailored trousers'));
+assert.ok(wardrobe.wardrobeTemplates('Womenswear','Dresses').some(t=>t.name==='Midi dress'));
+assert.ok(wardrobe.wardrobeTemplates('Womenswear','Skirts').some(t=>t.name==='Pleated skirt'));
+for(const [audience,name] of [['Menswear','Pleated trousers'],['Menswear','Baggy jeans'],['Womenswear','Midi dress']]){
+ const sample=wardrobe.garmentSample(wardrobe.collectionTemplates(audience).find(t=>t.name===name));
+ sample.views.front.push(model.newLayer('text','నా డిజైన్ / मेरा डिज़ाइन'));
+ const saved=await post({...create,createId:crypto.randomUUID(),title:name,config:{...config,color:sample.color,ink:sample.accent,studio:sample}});
+ assert.equal(saved.status,200);assert.deepEqual((await get()).designs.find(p=>p.id===saved.id).config.studio,sample);
+}
+pass('Both visual wardrobes expose formal, streetwear and casual garments; matching editable samples and Unicode artwork save without losing shape, color or fabric');
 console.log(passed+' advanced studio scenarios passed using real route logic and SQLite.');sqlite.close();
