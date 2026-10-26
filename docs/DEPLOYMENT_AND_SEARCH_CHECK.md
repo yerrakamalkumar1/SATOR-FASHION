@@ -32,3 +32,13 @@ Official references checked on this date:
 The additional garment controls and workspace regression passes alongside the ten existing studio scenarios. TypeScript and the standalone Node production build pass. Browser inspection confirms trousers have front/back workspaces and no neckline/sleeve controls. Existing non-sleeved detail layers retain editable, explicitly illustrative workspaces.
 
 PDF output is labeled **concept sheet**, excludes inapplicable sleeve previews, and invalidates prepared exports after design changes. Generation reaches a prepared download button. PNG export downloads successfully. Automated PDF download capture timed out; the cloud browser blocked opening the resulting blob URL under its protocol policy. PDF download/render verification remains incomplete and is not claimed as passing.
+
+## Hosted migration follow-up
+
+The `0012_studio_preferences.sql` file existed, but its schema declaration, Drizzle journal entry and snapshot were missing. The prior tests scanned every SQL file, matching the Node adapter; using Drizzle's actual journal reader instead reproduced a 503 when saving studio preferences. This is a release-candidate defect, not a verified explanation of the unchanged live Render site.
+
+The existing SQL is preserved byte-for-byte and is now registered in the journal with its schema and generated snapshot. A regression checks journal coverage, real studio route behavior and preservation of existing identities, private drafts, orders, follows and preferences across the migration. All 99 automated scenarios pass: 12 studio, 45 community, 18 creative, 11 functional and 13 authentication. Both the Cloudflare Worker and standalone Node production builds pass, as does TypeScript.
+
+The original ChatGPT-hosted project remains active with its existing DB and BUCKET bindings. It is a possible existing-host release destination, but using its address would not migrate Render-only accounts or uploads. No hosting switch, database merge, paid service or production deployment has been performed. Confirm the intended public destination before changing which site the user should use.
+
+The Render browser did not show a signed-in member after the handoff; it showed an account-creation form. No new account was submitted. Live Render member search remains unverified.
