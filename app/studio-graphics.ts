@@ -7,9 +7,9 @@ export function garmentPath(d:StudioDocument,view:StudioView='front'){
  const l=200-wide,r=400+wide,hem=d.length==='short'?420:d.length==='long'?550:500;
  const top=`M220 110Q300 160 380 110L${r+45} 140L${r+95} ${d.sleeves==='long'?425:240}L${r+45} ${d.sleeves==='long'?445:270}L${r} 220L${r+8} ${hem}Q300 ${hem+20} ${l-8} ${hem}L${l} 220L${l-45} ${d.sleeves==='long'?445:270}L${l-95} ${d.sleeves==='long'?425:240}L${l-45} 140Z`;
  switch(t.shape){
- case 'pants':return `M200 95H400L${d.fit==='slim'?380:425} 540H${d.fit==='slim'?325:320}L300 280L280 540H${d.fit==='slim'?220:175}Z`;
+ case 'pants':{const bottom=d.length==='short'?470:d.length==='long'?580:540,leg=d.fit==='slim'?80:d.fit==='relaxed'?135:d.fit==='oversized'?150:125;return `M200 95H400L${300+leg} ${bottom}H320L300 280L280 ${bottom}H${300-leg}Z`;}
  case 'shorts':return 'M190 150H410L430 430H315L300 290L285 430H170Z';
- case 'skirt':return `M225 140H375L${d.fit==='slim'?400:470} ${d.length==='short'?400:550}Q300 580 ${d.fit==='slim'?200:130} ${d.length==='short'?400:550}Z`;
+ case 'skirt':return `M225 140H375L${d.fit==='slim'?400:455+wide} ${d.length==='short'?400:550}Q300 580 ${d.fit==='slim'?200:145-wide} ${d.length==='short'?400:550}Z`;
  case 'dress':return `M235 90Q300 130 365 90L410 160L375 205L345 235L455 ${d.length==='short'?430:550}Q300 580 145 ${d.length==='short'?430:550}L255 235L225 205L190 160Z`;
  case 'drape':return 'M250 65L370 85L425 550Q300 585 175 550L205 170Z M250 65L370 85L230 430L170 400Z';
  case 'crop':return 'M230 130Q300 170 370 130L400 210L365 240L375 370Q300 390 225 370L235 240L200 210Z';
