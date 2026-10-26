@@ -6,7 +6,7 @@ export async function GET(request:Request){try{
  const user=await getAppUser();if(!user)return noStore({error:'Sign in to explore.'},401);
  const params=new URL(request.url).searchParams,q=(params.get('q')||'').trim().toLowerCase().slice(0,120),owner=params.get('profile')||'',page=Math.max(0,Math.min(10000,Number(params.get('page'))||0)),offset=Math.floor(page)*24;
  const kind=params.get('kind')||'all',trending=params.get('sort')==='trending';
- const kindWhere=kind==='creators'?"type IN ('design','post')":kind==='startups'?"type='listing'":kind==='reels'?"mediaType='video'":kind==='posts'?"type='post' AND mediaType<>'video'":kind==='designs'?"type='design'":kind==='products'?"type='listing'":'1=1';
+ const kindWhere=kind==='people'&&!owner?'0=1':kind==='creators'?"type IN ('design','post')":kind==='startups'?"type='listing'":kind==='reels'?"mediaType='video'":kind==='posts'?"type='post' AND mediaType<>'video'":kind==='designs'?"type='design'":kind==='products'?"type='listing'":'1=1';
  const peopleWhere=kind==='startups'?"instr(coalesce(roles,''),'brand')>0":kind==='creators'?"instr(coalesce(roles,''),'creator')>0":kind==='buyers'?"coalesce(roles,'customer') NOT LIKE '%creator%' AND coalesce(roles,'customer') NOT LIKE '%brand%'":kind==='reels'?'0=1':'1=1';
  const db=dbRaw(),profile=owner?await publicPerson(owner):null;
  const itemId=params.get('item');
