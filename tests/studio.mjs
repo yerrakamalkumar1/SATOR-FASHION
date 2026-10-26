@@ -3,10 +3,18 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync,readdirSync,mkdirSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {dirname,resolve} from 'node:path';
+import {readMigrationFiles} from 'drizzle-orm/migrator';
 const require=createRequire(import.meta.url);
 const {build}=await import(require.resolve('esbuild',{paths:[dirname(require.resolve('drizzle-kit'))]}));
+const journal=JSON.parse(readFileSync('drizzle/meta/_journal.json','utf8'));
+assert.deepEqual(journal.entries.map(entry=>entry.tag+'.sql').sort(),readdirSync('drizzle').filter(file=>file.endsWith('.sql')).sort(),'Every migration must be registered for hosted deployment');
+const migrations=readMigrationFiles({migrationsFolder:'drizzle'});
 const sqlite=new DatabaseSync(':memory:');
-for(const file of readdirSync('drizzle').filter(f=>f.endsWith('.sql')).sort())sqlite.exec(readFileSync('drizzle/'+file,'utf8'));
+// Exercise the deployment journal, not a directory scan that can hide an
+// unregistered migration from the hosted runtime.
+for(const migration of migrations){
+ for(const statement of migration.sql)sqlite.exec(statement);
+}
 class Statement{constructor(query,params=[]){this.query=query;this.params=params;}bind(...params){return new Statement(this.query,params);}async raw(){const st=sqlite.prepare(this.query);st.setReturnArrays(true);return st.all(...this.params);}async all(){return {success:true,results:sqlite.prepare(this.query).all(...this.params),meta:{}};}async first(){return sqlite.prepare(this.query).get(...this.params)||null;}async run(){const r=sqlite.prepare(this.query).run(...this.params);return {success:true,results:[],meta:{changes:r.changes,last_row_id:Number(r.lastInsertRowid)}};}}
 globalThis.__testEnv={DB:{prepare:q=>new Statement(q),batch:async statements=>{sqlite.exec('BEGIN');try{const out=[];for(const s of statements)out.push(await s.run());sqlite.exec('COMMIT');return out;}catch(e){sqlite.exec('ROLLBACK');throw e;}}}};
 globalThis.__testUser=null;
@@ -22,6 +30,23 @@ const model=await import(resolve('.sites-runtime/studio-tests/model.mjs'));
 const api=await import(resolve('.sites-runtime/studio-tests/studio.mjs'));
 const studioPost=async(body,origin='https://sator.test')=>{const r=await api.POST(new Request('https://sator.test/api/studio',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)}));return {status:r.status,...await r.json()};};
 let passed=0;const pass=s=>{passed++;console.log('PASS '+s);};
+const upgrade=new DatabaseSync(':memory:');
+for(const migration of migrations.slice(0,-1))for(const statement of migration.sql)upgrade.exec(statement);
+upgrade.exec(`INSERT INTO profiles(user_id,name,bio,role,created_at) VALUES ('retained-owner','Existing member','','customer','2026-10-01');
+ INSERT INTO designs(id,user_id,title,description,config,category,kind,published,created_at,updated_at) VALUES ('retained-draft','retained-owner','Private work','','{}','Graphic','creator',0,'2026-10-01','2026-10-01');
+ INSERT INTO orders(id,user_id,request_key,items,amount,name,contact,note,status,created_at) VALUES ('retained-order','retained-owner','existing-request','[]',0,'Existing member','','','quote_requested','2026-10-01');
+ INSERT INTO follows(follower_id,target_id,created_at) VALUES ('retained-owner','existing-creator','2026-10-01');`);
+const retained=()=>['profiles','designs','orders','follows'].map(table=>upgrade.prepare('SELECT * FROM '+table).all());
+const beforeUpgrade=retained();
+for(const statement of migrations.at(-1).sql)upgrade.exec(statement);
+assert.deepEqual(retained(),beforeUpgrade);
+upgrade.prepare('INSERT INTO studio_preferences VALUES (?,?,?)').run('retained-owner','Womenswear','2026-10-26');
+// A self-hosted install may already have applied this exact SQL file.
+for(const statement of migrations.at(-1).sql)upgrade.exec(statement);
+assert.equal(upgrade.prepare('SELECT audience FROM studio_preferences WHERE user_id=?').get('retained-owner').audience,'Womenswear');
+assert.throws(()=>upgrade.prepare('INSERT INTO studio_preferences VALUES (?,?,?)').run('bad-value','Unknown','2026-10-26'),/CHECK/);
+upgrade.close();
+pass('Deployment journal includes every migration; studio upgrade preserves identities, private drafts, orders, follows and existing preferences');
 assert.ok(model.templates.length>=170);assert.ok(model.fonts.length>=100);assert.ok(model.slogans.length>=300);assert.equal(new Set(model.templates.map(t=>t.id)).size,model.templates.length);assert.ok(['Menswear','Womenswear','Unisex'].every(a=>model.templates.some(t=>t.audience===a)));pass('Broad garment catalogue, unique template IDs, 100+ fonts and 300 slogans');
 const d=model.blankStudio(model.templates.find(t=>t.name==='Saree'));d.views.front.push(model.newLayer('text','నా దారి నాదే'));
 for(let i=0;i<300;i++){const next=model.randomDesign(d,{color:true,pattern:true,text:true,garment:true});assert.equal(next.color,d.color);assert.equal(next.templateId,d.templateId);assert.deepEqual(next.views.front,d.views.front);assert.equal(next.pattern,d.pattern);}
